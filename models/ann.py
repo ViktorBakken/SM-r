@@ -15,24 +15,24 @@ epochs = 250
 lr = 0.001
 test_size = 0.2
 momentum = 0.8
-#dropout_rate = 0.5
+dropout_rate = 0.5
 
 class ANN(nn.Module):
     def __init__(self, n_features):
         super(ANN,self).__init__()
         
-        self.ann = nn.Sequential(
+        self.network = nn.Sequential(
             nn.Linear(n_features, 64),
             nn.ReLU(),
-            # nn.Linear(128, 64),
-            # nn.ReLU(),
+            nn.Dropout(p=dropout_rate),
             nn.Linear(64, 32),
             nn.ReLU(),
+            nn.Dropout(p=dropout_rate),
             nn.Linear(32, 1)   
         )
         
     def forward(self,x):
-        return self.ann(x)
+        return self.network(x)
     
 def print_metrics(epoch, avg_train_loss, avg_test_loss):
     print(f"\nEpoch {epoch} done, Training Loss: {avg_train_loss:.4f}, Testing Loss: {avg_test_loss:.4f}\n")
@@ -130,7 +130,8 @@ else:
 #Specify cross entropy as loss function 
 loss_fn = nn.BCEWithLogitsLoss()  
 #Specify SGD as optimizer
-optimizer = th.optim.Adam(model.parameters(), lr = lr)
+#optimizer = th.optim.Adam(model.parameters(), lr = lr)
+optimizer = th.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
 #Init metrics
 metrics_test = {
