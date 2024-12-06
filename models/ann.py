@@ -156,6 +156,25 @@ df = pd.read_csv(os.path.abspath("SM-r/data/normalized_labeled_training_data.csv
 
 #Select all columns except the last
 X = df.iloc[:, :-1]
+
+#Create new features
+X['day_or_night'] = X['hour_of_day'].apply(lambda x: 1 if 8 <= x < 21 else 0)
+
+X['normal_day'] = (~((X['summertime'] == 1) | (X['holiday'] == 1) | (X['weekday'] == 0))).astype(int)
+
+
+
+X['cold'] = X['temp'].apply(lambda x: 1 if x <= 8 else 0)
+
+X['atemp'] = (243.04 * (np.log(X['humidity']/100)
+                        + (17.625 * X['dew']) / (243.04 + X['dew']))) / (17.625 - np.log(X['humidity']/100)
+                        - (17.625 * X['dew']) / (243.04 + X['dew']))
+
+#Remove bad features
+X = X.drop(['snow', 'snowdepth', 'holiday', 'visibility', 'precip', 'dew'], axis=1)
+
+X.info()
+
 #Select label column
 y = df['increase_stock']
 
