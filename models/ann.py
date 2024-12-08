@@ -9,25 +9,29 @@ from torch.cuda.amp import GradScaler, autocast
 from torcheval.metrics import BinaryPrecision, BinaryRecall, BinaryAUROC, BinaryAccuracy, BinaryF1Score
 
 #Defining variables
-input_size = 15
+input_size = 12
 batch_size = 32
-epochs = 250
+epochs = 1000
 lr = 0.001
 test_size = 0.2
 momentum = 0.8
-dropout_rate = 0.5
+dropout_rate = 0.6
+seed = 42
 
 class ANN(nn.Module):
     def __init__(self, n_features):
         super(ANN,self).__init__()
         
         self.network = nn.Sequential(
-            nn.Linear(n_features, 64),
+            nn.Linear(n_features, 32),
             nn.ReLU(),
             nn.Dropout(p=dropout_rate),
-            nn.Linear(64, 32),
-            nn.ReLU(),
-            nn.Dropout(p=dropout_rate),
+            # nn.Linear(32, 32),
+            # nn.ReLU(),
+            # nn.Dropout(p=dropout_rate),
+            # nn.Linear(32, 16),
+            # nn.ReLU(),
+            # nn.Dropout(p=dropout_rate),
             nn.Linear(32, 1)   
         )
         
@@ -130,8 +134,8 @@ else:
 #Specify cross entropy as loss function 
 loss_fn = nn.BCEWithLogitsLoss()  
 #Specify SGD as optimizer
-#optimizer = th.optim.Adam(model.parameters(), lr = lr)
-optimizer = th.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+optimizer = th.optim.Adam(model.parameters(), lr = lr)
+#optimizer = th.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
 #Init metrics
 metrics_test = {
@@ -166,9 +170,9 @@ X['normal_day'] = (~((X['summertime'] == 1) | (X['holiday'] == 1) | (X['weekday'
 
 X['cold'] = X['temp'].apply(lambda x: 1 if x <= 8 else 0)
 
-X['atemp'] = (243.04 * (np.log(X['humidity']/100)
-                        + (17.625 * X['dew']) / (243.04 + X['dew']))) / (17.625 - np.log(X['humidity']/100)
-                        - (17.625 * X['dew']) / (243.04 + X['dew']))
+# X['atemp'] = (243.04 * (np.log(X['humidity']/100)
+#                         + (17.625 * X['dew']) / (243.04 + X['dew']))) / (17.625 - np.log(X['humidity']/100)
+#                         - (17.625 * X['dew']) / (243.04 + X['dew']))
 
 #Remove bad features
 X = X.drop(['snow', 'snowdepth', 'holiday', 'visibility', 'precip', 'dew'], axis=1)
@@ -178,7 +182,7 @@ X.info()
 #Select label column
 y = df['increase_stock']
 
-X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_state=seed, stratify=y)
 
 X_train = th.tensor(X_train.values, dtype=th.float32)
 y_train = th.tensor(y_train.values, dtype=th.float32).unsqueeze(1)
